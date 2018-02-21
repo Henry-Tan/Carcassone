@@ -12,5 +12,6 @@ try:
 except Exception as e:
     print("problem")
     exit()
+
 print(len(gc._players))
 
