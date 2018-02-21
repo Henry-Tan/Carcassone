@@ -43,8 +43,8 @@ class GameController:
         runThrough = False
         count = 0
         size = self._deck.length()
-        self._tile = self._deck.drawTile()
-	    while not valid_tile:
+        self._tile = self._deck.drawTile()#
+        while not valid_tile:
             if len(self._grid.returnValidLocations(self._tile)) > 0:
                 valid_tile = True
             else:
