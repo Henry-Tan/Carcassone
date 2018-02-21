@@ -8,6 +8,7 @@
 
     function init(){
         playerCountParagraph = document.querySelector("#playerCount");
+        // call getPlayerCount once a second
         setInterval(getPlayerCount, 1000);
     }
 
