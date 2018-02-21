@@ -10,8 +10,8 @@ from os import environ
 from shelve import open
 from time import time
 
-from Player import *
-from GameController import *
+from logic.Player import *
+from logic.GameController import *
 
 def makePlayerSession(playerID, gameID, index):
     """Makes a player_session for the player.
