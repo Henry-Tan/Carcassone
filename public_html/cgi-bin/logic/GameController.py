@@ -45,17 +45,17 @@ class GameController:
         size = self._deck.length()
         self._tile = self._deck.drawTile()
 	    while not valid_tile:
-	        if len(self._grid.returnValidLocations(self._tile)) > 0:
-	            valid_tile = True
-	        else:
-		        self._deck.moveToBottom(self._tile)
-		        self._tile = self._deck.drawTile()
-		    count += 1
-		    if count == size:
-		        runThrough = True#
-	            """Functionality for end game needed here.
-		        If there are no more tiles that can be placed, the game must end at this point.
-		        Game-ending functions should appear here."""
+            if len(self._grid.returnValidLocations(self._tile)) > 0:
+                valid_tile = True
+            else:
+                self._deck.moveToBottom(self._tile)
+                self._tile = self._deck.drawTile()
+            count += 1
+            if count == size:
+                runThrough = True#
+                """Functionality for end game needed here.
+                If there are no more tiles that can be placed, the game must end at this point.
+                Game-ending functions should appear here."""
         self._validPlacements = self._grid.returnValidLocations(self._tile)
         return self._tile, self._validPlacements
 
