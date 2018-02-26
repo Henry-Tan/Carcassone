@@ -225,7 +225,7 @@
     
     function rotateTile() {
       console.log("rotating tile");
-      var image = document.getElementsByID('current');
+      var image = document.getElementByID('current');
       for (var i = 0; i < images.length; i++) {
         image[i].setAttribute('style', 'transform:rotate(90deg);'); // the 90deg parameter may be changed to whatever angle you want to rotate to
       if (rotation >= 3){
