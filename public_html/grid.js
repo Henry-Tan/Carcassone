@@ -10,7 +10,7 @@
     // Player index e.g. 0, 1, 2, 3
     var player;
     
-	var tableCellID;
+    var tableCellID;
 
     var startArray = [];
     
@@ -225,13 +225,16 @@
     
     function rotateTile() {
       console.log("rotating tile");
-      var image = document.getElementByID('current');
-      image.setAttribute('style', 'transform:rotate(90deg);'); // the 90deg parameter may be changed to whatever angle you want to rotate to
-      if (rotation >= 3){
-            rotation = 0;
+      var image = document.getElementsByID('current');
+      var rotate = 0;
+      rotation++;
+      rotation = rotation % 4;
+      if ((rotation) < 0) {
+	    rotate = 90*rotation;
       } else {
-            rotation ++;
-      }
+	    rotate = 0;
+	  }
+      image.setAttribute("style", "transform:rotate(" + rotate + "degs);");
       getValidPlaces(rotation);
     }
       
