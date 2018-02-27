@@ -1,6 +1,11 @@
 (function() {
 
     var request;
+    var leaderboardRequest;
+    var playerRequest;
+    var validPlacesRequest;
+    var checkMeeplesRequest;
+    var placeMeepleRequest;
     // Gameboard & sidebar container
     var div;
     // Relative path of image src
@@ -9,9 +14,7 @@
     var rotation = 0;
     // Player index e.g. 0, 1, 2, 3
     var player;
-    
     var tableCellID;
-
     var startArray = [];
     
     document.addEventListener("DOMContentLoaded", init, false);
@@ -37,8 +40,7 @@
 	console.log("made it out");
         getPlayer();
         //Get tile for player's turn
-        getPlayerTile();
-        //Get valid places where player can place tile
+        //getPlayerTile();
     }
 
     //CREATE TABLE FOR GAMEBOARD
@@ -49,19 +51,16 @@
         table.cellSpacing = "0";
         var tableBody = document.createElement('tbody');
         console.log("table made");
-        // y-coordinate for cell
-        var yStart = -1;
-
-        for (var i = 0; i < 3; i++){
+	
+        // increment y-coordinate for cell
+        for (var yStart = -1; yStart < 2; yStart++){
             // Create row
             var row = document.createElement("tr");
 
-            // x-coordinate for cell
-            var xStart = -1;
-            for (var j = 0; j < 3; j++){
+            // increment x-coordinate for cell
+            for (var xStart = -1; xStart < 2; xStart++){
                 // Create column
                 var cell = document.createElement("td");
-
                 // Adds an ID for each cell of table
 		cell.id = ((xStart.toString()).concat(",")).concat((yStart.toString()));
                 // Add blank image for each cell
@@ -73,10 +72,8 @@
 		row.appendChild(cell);
 
                 // Increment cell position
-                xStart ++;
             }
             // Increment cell position
-            yStart ++;
             tableBody.appendChild(row);
         }
         // Add table to container div and set a border
@@ -113,26 +110,29 @@
     function getPlayer(){
 	console.log("getting player");
         var url = "cgi-bin/getPlayer.py";
-        request = new XMLHttpRequest();
-        request.addEventListener("readystatechange", playerReceived, false);
-        request.open("GET", url, true);
-        request.send(null);
+        playerRequest = new XMLHttpRequest();
+        playerRequest.addEventListener("readystatechange", playerReceived, false);
+        playerRequest.open("GET", url, true);
+        playerRequest.send(null);
     }
 
     // Handler for 'getPlayer()'
     function playerReceived(){
         console.log("player received");
-        if (request.readyState === 4) {
+	console.log("readyState = " + playerRequest.readyState);
+        if (playerRequest.readyState === 4) {
 	    console.log("ready");
-            if (request.status === 200) {
+	    console.log("playerRequest.status = " + playerRequest.status);
+            if (playerRequest.status === 200) {
 		console.log("OK");
-                if (request.responseText.trim() != "problem") {
+		console.log("playerresponse = " + playerRequest.responseText.trim());
+                if (playerRequest.responseText.trim() != "problem") {
 		    console.log("success");
                     //TODO: update display to show who's turn it is
                     // request.responseText.trim() = player index in GameController players array
                     // e.g. 0, 1, 2, 3
 
-                    var player = document.getElementById(request.responseText.trim());
+                    var player = document.getElementById(playerRequest.responseText.trim());
                     player.className = "active";
 
                     //TODO: Lock controls to this player
@@ -164,11 +164,14 @@
     }
 
     function showPlayerTile(tilePath){
+	console.log("SHOWING A PLAYER TILE");
         var div = document.getElementById("deckTile");
         var image = document.createElement("img");
-	image.setAttribute("id", "current");
         image.src = tilePath;
+	console.log(tilePath);
         currentTile = tilePath;
+	console.log(currentTile);
+	
         div.appendChild(image);
     }
 
@@ -176,19 +179,19 @@
     function getValidPlaces(rotation){
         // Get array of available, valid cells
         var url = "cgi-bin/getValidPlaces.py?rotation=" + rotation;
-        request = new XMLHttpRequest();
-        request.addEventListener("readystatechange", validPlacesReceived, false);
-        request.open("GET", url, true);
-        request.send(null);
+        validPlacesRequest = new XMLHttpRequest();
+        validPlacesRequest.addEventListener("readystatechange", validPlacesReceived, false);
+        validPlacesRequest.open("GET", url, true);
+        validPlacesRequest.send(null);
     }
 
     // Handles 'getValidPlaces()'
     function validPlacesReceived(){
-        if (request.readyState === 4) {
-            if (request.status === 200) {
-                if (request.responseText.trim() != "problem") {
+        if (validPlacesRequest.readyState === 4) {
+            if (validPlacesRequest.status === 200) {
+                if (validPlacesRequest.responseText.trim() != "problem") {
                     // If successful get list of valid cell locations
-                    startArray = request.responseText.trim().split(" ");
+                    startArray = validPlacesRequest.responseText.trim().split(" ");
                     showValidPlaces(startArray);
                     
                 }
@@ -222,57 +225,42 @@
             unplacedCellImages[i].removeEventListener("click", function() {placeTile(this.parentNode.id);});
         }
     }
-    
-    function rotateTile() {
-      console.log("rotating tile");
-      var image = document.getElementsByID('current');
-      var rotate = 0;
-      rotation++;
-      rotation = rotation % 4;
-      if ((rotation) < 0) {
-	    rotate = 90*rotation;
-      } else {
-	    rotate = 0;
-	  }
-      image.setAttribute("style", "transform:rotate(" + rotate + "degs);");
-      getValidPlaces(rotation);
-    }
-      
 
-        //PLAYER PLACES TILE ON TURN
+    //PLAYER PLACES TILE ON TURN
     function placeTile(cellID){
         // ASK HENRY WHAT EXACTLY THIS LINE DOES
         var image = document.getElementById(cellID).childNodes;
+	console.log(currentTile);
         image[0].src = currentTile;
         image[0].className = "placed";
-		console.log(image[0]);
+	console.log(image[0]);
         console.log("placed tile");
-        //TODO: Update table to show new tile placement
-        //TODO: Send cell information to GameController
-        //placeMeeple();
-		tableCellID = cellID;
+	tableCellID = cellID;
         checkMeeplePlacements();
     }
-
+    
     function checkMeeplePlacements(){
+	console.log("meeples pls");
         // Check if a meeple can be placed
         var url = "cgi-bin/getMeeplePlacements.py";
-        request = new XMLHttpRequest();
-        request.addEventListener("readystatechange", canMeepleBePlaced, false);
-        request.open("GET", url, true);
-        request.send(null);
+        checkMeeplesRequest = new XMLHttpRequest();
+        checkMeeplesRequest.addEventListener("readystatechange", canMeepleBePlaced, false);
+        checkMeeplesRequest.open("GET", url, true);
+        checkMeeplesRequest.send(null);
     }
+    
     function canMeepleBePlaced(){
-        if (request.readyState === 4) {
-            if (request.status === 200) {
-                if (request.responseText.trim() != "problem") {
+	console.log("can meeples be placed");
+        if (checkMeeplesRequest.readyState === 4) {
+            if (checkMeeplesRequest.status === 200) {
+                if (checkMeeplesRequest.responseText.trim() != "problem") {
                     // If no
-                    if (request.responseText.trim() == 0){
+                    if (checkMeeplesRequest.responseText.trim() == 0){
                         endTurn();
                     }
                     // else return places
                     else {
-                        var placements = request.responseText.trim()
+                        var placements = checkMeeplesRequest.responseText.trim();
                         placeMeeple(placements);    
                     } 
                 }
@@ -281,9 +269,10 @@
     }
 
     function placeMeeple(placements){
+	console.log("meeple is placed");
         //  ask user do you want to place meeple?
         //  if True
-        document.getElementById("meepleQuestion");
+        var meepleQuestion = document.getElementById("meepleQuestion");
         var text = document.createTextNode("Would you like to place a meeple");
         meepleQuestion.appendChild(text);
         for (i = 0; i < placements.length; i++) {
@@ -301,38 +290,38 @@
             endTurn();
         }
     }
-
+    
     function meeplePlacementPressed(side) {
         // put the meeple on this side of the grid cell
         var url = "cgi-bin/getMeepleImage.py";
-        request = new XMLHttpRequest();
-        request.addEventListener("readystatechange", placeMeepleImage(side), false);
-        request.open("GET", url, true);
-        request.send(null);
+        placeMeepleRequest = new XMLHttpRequest();
+        placeMeepleRequest.addEventListener("readystatechange", placeMeepleImage(side), false);
+        placeMeepleRequest.open("GET", url, true);
+        placeMeepleRequest.send(null);
     }
 		
 
     function placeMeepleImage(side){
         // TODO: Needs to place image to correct side of cell
-		
-        if (request.readyState === 4) {
-            if (request.status === 200) {
-                if (request.responseText.trim() != "problem") {
+        if (placeMeepleRequest.readyState === 4) {
+            if (placeMeepleRequest.status === 200) {
+                if (placeMeepleRequest.responseText.trim() != "problem") {
                     cell = document.getElementById(tableCellID);
                     var meepleImage = document.createElement("img");
-                    meepleImage.src = request.responseText.trim();
+                    meepleImage.src = placeMeepleRequest.responseText.trim();
                     cell.appendChild(meepleImage);
                     //cell.childNode.style.
                 }
             }
         }
     }
-
+    
     function endTurn(){
+	console.log("end turn");
         // Delete any meeple buttons
         meepleQuestion.innerHTML = "";
         tableCellID = null;
-		hideValidPlaces();
+	hideValidPlaces();
         updateLeaderBoard();
         nextTurn();
     }
@@ -344,29 +333,40 @@
         getValidPlaces(rotation);
     }
 
+    function rotateTile(){
+        //TODO: update user of tile rotation display
+        // Can do with CSS or JQUERY 
+        console.log("PLACE START TILE");
+        // ASK CATHY
+        if (rotation >= 3){
+            rotation = 0;
+        } else {
+            rotation ++;
+        }
+        getValidPlaces(rotation);
+    }
 
     // Called in 'placeTile()'
     function getLeaderBoard(){
 	console.log("getting leaderboard");
-        //TODO: GET SCORE FROM GAME CONTROLLER
         var url = "cgi-bin/Scoreboard.py";
-        request = new XMLHttpRequest();
-        request.addEventListener("readystatechange", leaderboardReceived, false);
-        request.open("GET", url, true);
-        request.send(null);
+        leaderboardRequest = new XMLHttpRequest();
+        leaderboardRequest.addEventListener("readystatechange", leaderboardReceived, false);
+        leaderboardRequest.open("GET", url, true);
+        leaderboardRequest.send(null);
     }
 
     // Handles 'updateScore()'
     function leaderboardReceived(){
 	console.log("LEADERBOARD recieve function");
-        if (request.readyState === 4) {
-	    console.log(request.readyState);
-	    console.log(request.responseText.trim());
-            if (request.status === 200) {
-		console.log(request.status);
-                if (request.responseText.trim() != "problem") {
+	console.log("readyState= " +leaderboardRequest.readyState);
+        if (leaderboardRequest.readyState === 4) {
+	    console.log("resonse = " +leaderboardRequest.responseText.trim());
+            if (leaderboardRequest.status === 200) {
+		console.log("status= " + leaderboardRequest.status);
+                if (leaderboardRequest.responseText.trim() != "problem") {
 		    console.log("no problem");
-		    updateLeaderboard(request.responseText.trim());
+		    updateLeaderboard(leaderboardRequest.responseText.trim());
                     //TODO: UPDATE LEADERBOARD
                 }
             }
@@ -375,7 +375,9 @@
     }
     
     function updateLeaderboard(newLeaderboard){
+	console.log("updating leaderboard");
 	scoreboard = document.getElementById("scoreboard");
+	console.log("newLeaderboard = " +newLeaderboard);
 	scoreboard.innerHTML = newLeaderboard;
     }
 
