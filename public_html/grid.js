@@ -42,12 +42,23 @@
     var pTagTile = 71;
     // Player score display
     var scoreboard;
+	
+    var background = new Audio("SoundAssets/background_music.mp3");
+    var defeat = new Audio("SoundAssets/defeat_fanfare.mp3");
+    var draw = new Audio("SoundAssets/draw_tile.mp3");
+    var placeM = new Audio("SoundAssets/place_meeple.mp3");
+    var placeT = new Audio("SoundAssets/place_tile.mp3");
+    var point = new Audio("SoundAssets/point_gain.mp3");
+    var rotate = new Audio("SoundAssets/rotate_tile.mp3");
+    var victory = new Audio("SoundAssets/victory_fanfare.mp3");
     
     document.addEventListener("DOMContentLoaded", init, false);
 
     function init(){
         console.log("GAME STARTING");
 	pTagTile = document.getElementById("tileCount");
+	background.addEventListener("ended", restartMusic, false);
+        background.play();
         grid = document.getElementById("grid");
 	board = document.getElementById("board");
 	deckTileDiv = document.getElementById("deckTile");
@@ -59,6 +70,11 @@
         startGame();
 	console.log("playerCookie=" + playerCookie);
 	playerPoll = setInterval(pollTurn, 2000);
+    }
+	
+    function restartMusic() {
+    	background.currentTime = 0;
+	background.play();
     }
     
     // Get players cookie
@@ -272,6 +288,7 @@
         currentTile = tilePath;
 	console.log(currentTile);
         curTile.appendChild(image);
+	draw.play();
     }
 
     //SHOW AVAILABLE VALID CELLS
@@ -339,6 +356,7 @@
 	image[0].style.transform = "rotate(" + rotation + "deg)";
 	console.log(image[0]);
         console.log("placed tile");
+	placeT.play();
 	tableCellID = cellID;
 	console.log("CELL TILE PLACED IN: " + cellID);
 	console.log("disable multiple placements");
@@ -421,6 +439,7 @@
                 placeMeepleRequest.open("GET", url, true);
                 placeMeepleRequest.send(null);
             }, false);
+	    placeM.play();
 	    }
         var endGo = document.createElement("button");
         endGo.innerHTML = "NO";
@@ -465,6 +484,7 @@
 	    winner = winner.childNodes[0];
 	    console.log(winner);
 	    window.alert("Game Over!! Winner is " + winner);
+	    victory.play();
 	}
 	hideValidPlaces();
         getLeaderBoard();
@@ -504,6 +524,7 @@
             rotation += 90;
         }
         tile.style.transform = "rotate(" + rotation + "deg)";
+	rotate.play();
 	hideValidPlaces();
         getValidPlaces("True");
     }
